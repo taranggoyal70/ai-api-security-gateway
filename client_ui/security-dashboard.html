@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Security Gateway</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 15% 30%, rgba(255, 107, 53, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 85% 70%, rgba(255, 184, 0, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(88, 166, 255, 0.02) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            margin-bottom: 40px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .shield-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #ff6b35 0%, #ffb800 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 8px 16px rgba(255, 107, 53, 0.25);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #f0f6fc;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #9ca3af;
+            font-weight: 400;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+
+        .status-badge.offline {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .status-badge.offline .status-dot {
+            background: #ef4444;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1200px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            border-color: #484f58;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .card-icon {
+            font-size: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f3f4f6;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(17, 24, 39, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            color: #e4e7eb;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+        }
+
+        textarea {
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #ff6b35;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: #ff8555;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: rgba(17, 24, 39, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #f0f6fc;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .response-container {
+            background: rgba(17, 24, 39, 0.4);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid;
+            margin-top: 16px;
+        }
+
+        .response-container.allowed {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .response-container.blocked {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .response-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .response-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .check-item {
+            background: rgba(17, 24, 39, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .check-item.pass {
+            border-left: 3px solid #10b981;
+        }
+
+        .check-item.fail {
+            border-left: 3px solid #ef4444;
+        }
+
+        .check-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .check-name {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #d1d5db;
+        }
+
+        .check-details {
+            font-size: 12px;
+            color: #9ca3af;
+            line-height: 1.4;
+        }
+
+        .events-container {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .events-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .events-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 3px;
+        }
+
+        .events-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .event-item {
+            background: rgba(17, 24, 39, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-left: 3px solid;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .event-item.allowed {
+            border-left-color: #10b981;
+        }
+
+        .event-item.blocked {
+            border-left-color: #ef4444;
+        }
+
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .event-agent {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f3f4f6;
+        }
+
+        .event-time {
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .event-reason {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+
+        .event-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #fca5a5;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #6b7280;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.3;
+        }
+
+        details {
+            margin-top: 16px;
+            background: rgba(17, 24, 39, 0.4);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        summary {
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #58a6ff;
+            user-select: none;
+        }
+
+        pre {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #d1d5db;
+        }
+
+        .scenario-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        .scenario-badge.valid { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+        .scenario-badge.violation { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+        .scenario-badge.warning { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+    </style>
+</head>
+<body>
+    <div class="background-pattern"></div>
+    
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="shield-icon">🛡️</div>
+                    <div>
+                        <h1>Agent Security Gateway</h1>
+                        <div class="subtitle">Real-time API security enforcement</div>
+                    </div>
+                </div>
+                <div id="statusBadge" class="status-badge offline">
+                    <div class="status-dot"></div>
+                    <span>Checking connection...</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">⚡</span>
+                        <h2 class="card-title">Test Request</h2>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Agent Identity</label>
+                        <select id="agentId">
+                            <option value="support-bot">Support Bot — Limited Access</option>
+                            <option value="finance-bot">Finance Bot — Financial Operations</option>
+                            <option value="admin-agent">Admin Agent — Full Access</option>
+                            <option value="demo-agent">Demo Agent — Testing Only</option>
+                            <option value="hacker-bot">Hacker Bot — Unauthorized</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Target Endpoint</label>
+                        <select id="endpoint">
+                            <option value="/tickets">🎫 Support Tickets</option>
+                            <option value="/refunds">💰 Refund Processing</option>
+                            <option value="/invoices">📄 Invoice Management</option>
+                            <option value="/export">📊 Data Export</option>
+                            <option value="/sync/safe">✅ Safe Sync</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Test Scenario</label>
+                        <select id="scenario" onchange="loadScenario()">
+                            <option value="valid">Valid Request <span class="scenario-badge valid">✓</span></option>
+                            <option value="schema">Schema Violation <span class="scenario-badge violation">×</span></option>
+                            <option value="identity">Identity Violation <span class="scenario-badge violation">×</span></option>
+                            <option value="guardrail">Guardrail Violation <span class="scenario-badge violation">×</span></option>
+                            <option value="taint">Tainted Data <span class="scenario-badge warning">⚠</span></option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Request Parameters</label>
+                        <textarea id="params" rows="4">{"customer_id": "123", "subject": "Help needed"}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>User Prompt (Optional)</label>
+                        <input type="text" id="prompt" placeholder="e.g., Refund customer 123 for $250">
+                    </div>
+
+                    <button onclick="sendRequest()" id="sendBtn">
+                        <span id="btnText">Send Request</span>
+                    </button>
+                    
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #30363d;">
+                        <label>🤖 AI Agent Mode</label>
+                        <div style="margin-bottom: 10px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="useOllama" style="width: auto;">
+                                <span>Use Ollama (Local, Free)</span>
+                            </label>
+                        </div>
+                        <textarea id="agentPrompt" rows="2" placeholder="e.g., Create a support ticket for customer 123 about billing"></textarea>
+                        <button onclick="sendAgentPrompt()" id="agentBtn" style="margin-top: 10px; background: #58a6ff;">
+                            <span id="agentBtnText">Send to AI Agent</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <span class="card-icon">📊</span>
+                        <h2 class="card-title">Live Statistics</h2>
+                    </div>
+                    <div class="stats-grid" id="statsGrid">
+                        <div class="stat-card">
+                            <div class="stat-value">0</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: #3fb950;">0</div>
+                            <div class="stat-label">Allowed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: #f85149;">0</div>
+                            <div class="stat-label">Blocked</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" style="color: #ffb800;">0%</div>
+                            <div class="stat-label">Block Rate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">🎯</span>
+                        <h2 class="card-title">Security Decision</h2>
+                    </div>
+                    <div id="responseContainer">
+                        <div class="empty-state">
+                            <div class="empty-icon">🔒</div>
+                            <p>Send a request to see the security analysis</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <span class="card-icon">📡</span>
+                        <h2 class="card-title">Event Stream</h2>
+                    </div>
+                    <div class="events-container" id="eventsContainer">
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <p>No security events yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8002';
+        const AGENT_API_URL = 'http://localhost:8003';
+
+        async function checkStatus() {
+            try {
+                const res = await fetch(`${API_URL}/health`);
+                await res.json();
+                document.getElementById('statusBadge').className = 'status-badge';
+                document.getElementById('statusBadge').innerHTML = '<div class="status-dot"></div><span>Live & Monitoring</span>';
+                loadStats();
+            } catch {
+                document.getElementById('statusBadge').className = 'status-badge offline';
+                document.getElementById('statusBadge').innerHTML = '<div class="status-dot"></div><span>Gateway Offline</span>';
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API_URL}/stats`);
+                const data = await res.json();
+                
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${data.total_requests}</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: #3fb950;">${data.allowed}</div>
+                        <div class="stat-label">Allowed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: #f85149;">${data.blocked}</div>
+                        <div class="stat-label">Blocked</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: #ffb800;">${data.block_rate.toFixed(1)}%</div>
+                        <div class="stat-label">Block Rate</div>
+                    </div>
+                `;
+            } catch (e) {
+                console.error('Stats load failed:', e);
+            }
+        }
+
+        async function loadEvents() {
+            try {
+                const res = await fetch(`${API_URL}/events?limit=10`);
+                const data = await res.json();
+                
+                if (data.events && data.events.length > 0) {
+                    const html = data.events.reverse().map(e => `
+                        <div class="event-item ${e.allowed ? 'allowed' : 'blocked'}">
+                            <div class="event-header">
+                                <span class="event-agent">${e.allowed ? '✓' : '✗'} ${e.agent_id}</span>
+                                <span class="event-time">${new Date(e.timestamp).toLocaleTimeString()}</span>
+                            </div>
+                            <div class="event-reason">${e.reason}</div>
+                            ${!e.allowed ? `<span class="event-badge">${e.blocked_by}</span>` : ''}
+                        </div>
+                    `).join('');
+                    document.getElementById('eventsContainer').innerHTML = html;
+                }
+            } catch (e) {
+                console.error('Events load failed:', e);
+            }
+        }
+
+        async function sendRequest() {
+            const btn = document.getElementById('sendBtn');
+            const btnText = document.getElementById('btnText');
+            btn.disabled = true;
+            btnText.textContent = 'Processing...';
+            
+            try {
+                const params = JSON.parse(document.getElementById('params').value);
+                const payload = {
+                    endpoint: document.getElementById('endpoint').value,
+                    method: 'GET',
+                    params: params,
+                    user_prompt: document.getElementById('prompt').value || null
+                };
+                
+                const res = await fetch(`${API_URL}/gateway/secure`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Agent-ID': document.getElementById('agentId').value
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                displayResponse(data);
+                loadStats();
+                loadEvents();
+                
+            } catch (e) {
+                alert('Request failed: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Send Request';
+            }
+        }
+
+        function displayResponse(data) {
+            const checksHtml = Object.entries(data.security_checks).map(([control, check]) => `
+                <div class="check-item ${check.passed ? 'pass' : 'fail'}">
+                    <div class="check-header">
+                        <span class="check-name">${control.replace(/_/g, ' ')}</span>
+                        <span>${check.passed ? '✓' : '✗'}</span>
+                    </div>
+                    <div class="check-details">${check.details || 'N/A'}</div>
+                </div>
+            `).join('');
+            
+            document.getElementById('responseContainer').innerHTML = `
+                <div class="response-container ${data.allowed ? 'allowed' : 'blocked'}">
+                    <div class="response-header">
+                        <div class="response-title">
+                            <span>${data.allowed ? '✓' : '✗'}</span>
+                            <span>${data.allowed ? 'Request Allowed' : 'Request Blocked'}</span>
+                        </div>
+                    </div>
+                    ${!data.allowed ? `<p style="margin-bottom: 12px; color: #fca5a5;"><strong>Blocked by:</strong> ${data.blocked_by}</p>` : ''}
+                    <p style="margin-bottom: 16px; color: #d1d5db;">${data.reason}</p>
+                    <div class="checks-grid">${checksHtml}</div>
+                    <details>
+                        <summary>View Full Response</summary>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                </div>
+            `;
+        }
+
+        function loadScenario() {
+            const scenarios = {
+                valid: {
+                    agent: 'support-bot',
+                    endpoint: '/tickets',
+                    params: '{"customer_id": "123", "subject": "Help needed"}',
+                    prompt: ''
+                },
+                schema: {
+                    agent: 'support-bot',
+                    endpoint: '/tickets',
+                    params: '{"customer_id": "123", "subject": "Help", "override_checks": true}',
+                    prompt: ''
+                },
+                identity: {
+                    agent: 'support-bot',
+                    endpoint: '/invoices',
+                    params: '{"customer_id": "123", "amount": 100}',
+                    prompt: ''
+                },
+                guardrail: {
+                    agent: 'support-bot',
+                    endpoint: '/refunds',
+                    params: '{"customer_id": "123", "amount": 5000}',
+                    prompt: 'Refund customer 123 $5000'
+                },
+                taint: {
+                    agent: 'support-bot',
+                    endpoint: '/refunds',
+                    params: '{"customer_id": "123", "amount": 250}',
+                    prompt: 'Refund customer 123 $250'
+                }
+            };
+            
+            const s = scenarios[document.getElementById('scenario').value];
+            if (s) {
+                document.getElementById('agentId').value = s.agent;
+                document.getElementById('endpoint').value = s.endpoint;
+                document.getElementById('params').value = s.params;
+                document.getElementById('prompt').value = s.prompt;
+            }
+        }
+
+        async function sendAgentPrompt() {
+            const btn = document.getElementById('agentBtn');
+            const btnText = document.getElementById('agentBtnText');
+            const prompt = document.getElementById('agentPrompt').value;
+            
+            if (!prompt.trim()) {
+                alert('Please enter a prompt for the AI agent');
+                return;
+            }
+            
+            btn.disabled = true;
+            btnText.textContent = 'AI Agent Processing...';
+            
+            try {
+                const useOllama = document.getElementById('useOllama').checked;
+                
+                const res = await fetch(`${AGENT_API_URL}/agent/prompt`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        agent_id: document.getElementById('agentId').value,
+                        use_ollama: useOllama,
+                        ollama_model: "llama3.2"
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    displayAgentResponse(data);
+                    loadStats();
+                    loadEvents();
+                } else {
+                    alert('Agent Error: ' + (data.error || 'Unknown error'));
+                }
+                
+            } catch (e) {
+                alert('Failed to connect to AI Agent API. Make sure it\'s running on port 8003.\nError: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Send to AI Agent';
+            }
+        }
+        
+        function displayAgentResponse(data) {
+            let html = `
+                <div class="response-container allowed" style="border-color: #58a6ff; background: rgba(88, 166, 255, 0.05);">
+                    <div class="response-header">
+                        <div class="response-title">
+                            <span>🤖</span>
+                            <span>AI Agent Response</span>
+                        </div>
+                    </div>
+            `;
+            
+            if (data.agent_response) {
+                html += `<p style="margin-bottom: 16px; color: #d1d5db;">${data.agent_response}</p>`;
+            }
+            
+            if (data.tool_calls && data.tool_calls.length > 0) {
+                html += `<div style="margin-top: 16px;"><strong>Function Calls:</strong></div>`;
+                
+                data.tool_calls.forEach(call => {
+                    const security = call.security_result;
+                    const allowed = security.allowed;
+                    
+                    html += `
+                        <div style="margin-top: 12px; padding: 12px; background: rgba(17, 24, 39, 0.6); border-radius: 8px; border-left: 3px solid ${allowed ? '#3fb950' : '#f85149'};">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <strong>${call.function}</strong>
+                                <span>${allowed ? '✓ Allowed' : '✗ Blocked'}</span>
+                            </div>
+                            <div style="font-size: 12px; color: #9ca3af; margin-bottom: 8px;">
+                                ${JSON.stringify(call.arguments)}
+                            </div>
+                            ${!allowed ? `<div style="color: #fca5a5; font-size: 12px;">Blocked by: ${security.blocked_by}</div>` : ''}
+                            <div style="color: #9ca3af; font-size: 12px;">${security.reason}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            html += `</div>`;
+            document.getElementById('responseContainer').innerHTML = html;
+        }
+        
+        checkStatus();
+        setInterval(checkStatus, 5000);
+        setInterval(loadEvents, 3000);
+    </script>
+</body>
+</html>

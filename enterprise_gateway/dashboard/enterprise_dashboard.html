@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Agent Security Gateway</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .card-icon {
+            font-size: 24px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .stat-item {
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+        }
+
+        .stat-item-value {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .stat-item-label {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .event-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(15, 23, 42, 0.5);
+            border-left: 3px solid;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .event-item.allowed {
+            border-color: #10b981;
+        }
+
+        .event-item.denied {
+            border-color: #ef4444;
+        }
+
+        .event-item.approval {
+            border-color: #f59e0b;
+        }
+
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .event-agent {
+            font-weight: 600;
+            color: #60a5fa;
+        }
+
+        .event-time {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .event-action {
+            color: #cbd5e1;
+            margin-bottom: 4px;
+        }
+
+        .event-reason {
+            font-size: 11px;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .button-secondary {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        }
+
+        .button-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .button-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .response-container {
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .response-container.success {
+            border-color: #10b981;
+        }
+
+        .response-container.error {
+            border-color: #ef4444;
+        }
+
+        .response-container.pending {
+            border-color: #f59e0b;
+        }
+
+        .approval-item {
+            padding: 16px;
+            margin-bottom: 12px;
+            background: rgba(251, 146, 60, 0.1);
+            border: 1px solid rgba(251, 146, 60, 0.3);
+            border-radius: 8px;
+        }
+
+        .approval-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .approval-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .approval-actions button {
+            width: auto;
+            padding: 8px 16px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3b82f6;
+        }
+
+        .timeline-item.allowed::before {
+            background: #10b981;
+        }
+
+        .timeline-item.denied::before {
+            background: #ef4444;
+        }
+
+        .timeline-item.approval::before {
+            background: #f59e0b;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: -17px;
+            top: 20px;
+            width: 2px;
+            height: calc(100% - 12px);
+            background: rgba(148, 163, 184, 0.2);
+        }
+
+        .timeline-item:last-child::after {
+            display: none;
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 12px;
+        }
+
+        .scenario-card {
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .scenario-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        .scenario-card.selected {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .scenario-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #f1f5f9;
+        }
+
+        .scenario-desc {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .risk-low {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .risk-medium {
+            background: rgba(251, 146, 60, 0.2);
+            color: #fb923c;
+        }
+
+        .risk-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .risk-critical {
+            background: rgba(220, 38, 38, 0.3);
+            color: #dc2626;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.5);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span>🛡️</span>
+                Enterprise Agent Security Gateway
+            </h1>
+            <div class="status-badge" id="statusBadge">
+                <div class="status-dot"></div>
+                <span>Live & Monitoring</span>
+            </div>
+        </div>
+
+        <!-- Statistics Grid -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📊</span>
+                    <h2 class="card-title">Total Requests</h2>
+                </div>
+                <div class="stat-value" id="totalRequests">0</div>
+                <div class="stat-label">All agent actions</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">✅</span>
+                    <h2 class="card-title">Allowed</h2>
+                </div>
+                <div class="stat-value" id="allowedCount" style="color: #10b981;">0</div>
+                <div class="stat-label"><span id="allowRate">0</span>% allow rate</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">❌</span>
+                    <h2 class="card-title">Blocked</h2>
+                </div>
+                <div class="stat-value" id="blockedCount" style="color: #ef4444;">0</div>
+                <div class="stat-label"><span id="blockRate">0</span>% block rate</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">⏸️</span>
+                    <h2 class="card-title">Pending Approval</h2>
+                </div>
+                <div class="stat-value" id="approvalCount" style="color: #f59e0b;">0</div>
+                <div class="stat-label"><span id="approvalRate">0</span>% approval rate</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+            <!-- AI Agent Playground -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🤖</span>
+                    <h2 class="card-title">AI Agent Playground</h2>
+                </div>
+
+                <div class="form-group">
+                    <label>Agent</label>
+                    <select id="agentSelect">
+                        <option value="support-agent">Customer Support Agent</option>
+                        <option value="refund-agent">Refund & Billing Agent</option>
+                        <option value="admin-agent">Admin & DevOps Assistant</option>
+                        <option value="hacker-bot">Hacker Bot (Test)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>LLM Provider</label>
+                    <div style="display: flex; gap: 12px;">
+                        <label style="flex: 1; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="provider" value="ollama" checked>
+                            <span>Ollama (Local)</span>
+                        </label>
+                        <label style="flex: 1; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="provider" value="openai">
+                            <span>OpenAI (Cloud)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>User Prompt</label>
+                    <textarea id="userPrompt" placeholder="e.g., Create a support ticket for customer 12345 about billing"></textarea>
+                </div>
+
+                <button onclick="sendAgentPrompt()" id="agentBtn">
+                    <span id="agentBtnText">🚀 Send to AI Agent</span>
+                </button>
+
+                <div id="agentResponse"></div>
+            </div>
+
+            <!-- Demo Scenarios -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">🎭</span>
+                    <h2 class="card-title">Demo Scenarios</h2>
+                </div>
+
+                <div class="scenario-grid" id="scenarioGrid">
+                    <!-- Populated by JS -->
+                </div>
+
+                <button onclick="runSelectedScenario()" id="runScenarioBtn" style="margin-top: 16px;" class="button-secondary">
+                    Run Selected Scenario
+                </button>
+            </div>
+        </div>
+
+        <!-- Pending Approvals -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <span class="card-icon">⏸️</span>
+                <h2 class="card-title">Pending Approvals</h2>
+            </div>
+            <div id="approvalsList">
+                <p style="color: #94a3b8; text-align: center; padding: 20px;">No pending approvals</p>
+            </div>
+        </div>
+
+        <!-- Live Event Stream -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📡</span>
+                    <h2 class="card-title">Live Event Stream</h2>
+                </div>
+                <div class="event-list" id="eventList">
+                    <p style="color: #94a3b8; text-align: center; padding: 20px;">Waiting for events...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon">📈</span>
+                    <h2 class="card-title">Risk Distribution</h2>
+                </div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-item-value" style="color: #10b981;" id="riskLow">0</div>
+                        <div class="stat-item-label">Low Risk</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-value" style="color: #fb923c;" id="riskMedium">0</div>
+                        <div class="stat-item-label">Medium Risk</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-value" style="color: #ef4444;" id="riskHigh">0</div>
+                        <div class="stat-item-label">High Risk</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-value" style="color: #dc2626;" id="riskCritical">0</div>
+                        <div class="stat-item-label">Critical Risk</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GATEWAY_URL = 'http://localhost:8004';
+        const AGENT_API_URL = 'http://localhost:8005';
+        
+        let ws = null;
+        let selectedScenario = null;
+        let scenarios = [];
+
+        // Initialize
+        async function init() {
+            await loadStats();
+            await loadScenarios();
+            await loadPendingApprovals();
+            connectWebSocket();
+            
+            // Refresh data periodically
+            setInterval(loadStats, 5000);
+            setInterval(loadPendingApprovals, 3000);
+        }
+
+        // WebSocket connection
+        function connectWebSocket() {
+            ws = new WebSocket('ws://localhost:8004/ws/events');
+            
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'history') {
+                    displayEvents(data.events);
+                } else if (data.type === 'tool_call' || data.type === 'approval_granted' || data.type === 'approval_denied') {
+                    addEventToStream(data);
+                    loadStats();
+                }
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket closed, reconnecting...');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const res = await fetch(`${GATEWAY_URL}/stats`);
+                const stats = await res.json();
+                
+                document.getElementById('totalRequests').textContent = stats.total_requests || 0;
+                document.getElementById('allowedCount').textContent = stats.allowed || 0;
+                document.getElementById('blockedCount').textContent = stats.denied || 0;
+                document.getElementById('approvalCount').textContent = stats.approval_required || 0;
+                
+                document.getElementById('allowRate').textContent = stats.allow_rate || 0;
+                document.getElementById('blockRate').textContent = stats.deny_rate || 0;
+                document.getElementById('approvalRate').textContent = stats.approval_rate || 0;
+                
+                // Risk distribution
+                const riskLevels = stats.by_risk_level || {};
+                document.getElementById('riskLow').textContent = riskLevels.low || 0;
+                document.getElementById('riskMedium').textContent = riskLevels.medium || 0;
+                document.getElementById('riskHigh').textContent = riskLevels.high || 0;
+                document.getElementById('riskCritical').textContent = riskLevels.critical || 0;
+            } catch (e) {
+                console.error('Failed to load stats:', e);
+            }
+        }
+
+        // Load demo scenarios
+        async function loadScenarios() {
+            try {
+                const res = await fetch(`${GATEWAY_URL}/demo/scenarios`);
+                const data = await res.json();
+                scenarios = data.scenarios;
+                
+                const grid = document.getElementById('scenarioGrid');
+                grid.innerHTML = scenarios.map((s, i) => `
+                    <div class="scenario-card" onclick="selectScenario(${i})">
+                        <div class="scenario-name">${s.name}</div>
+                        <div class="scenario-desc">${s.description}</div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('Failed to load scenarios:', e);
+            }
+        }
+
+        function selectScenario(index) {
+            selectedScenario = scenarios[index];
+            document.querySelectorAll('.scenario-card').forEach((card, i) => {
+                card.classList.toggle('selected', i === index);
+            });
+        }
+
+        async function runSelectedScenario() {
+            if (!selectedScenario) {
+                alert('Please select a scenario first');
+                return;
+            }
+            
+            const btn = document.getElementById('runScenarioBtn');
+            btn.disabled = true;
+            btn.textContent = 'Running...';
+            
+            try {
+                const res = await fetch(`${GATEWAY_URL}/demo/run-scenario/${selectedScenario.id}`, {
+                    method: 'POST'
+                });
+                const result = await res.json();
+                
+                displayScenarioResult(result);
+                await loadStats();
+            } catch (e) {
+                alert('Failed to run scenario: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Run Selected Scenario';
+            }
+        }
+
+        function displayScenarioResult(result) {
+            const container = document.getElementById('agentResponse');
+            const matched = result.matched_expectation;
+            
+            container.innerHTML = `
+                <div class="response-container ${result.result.decision === 'allow' ? 'success' : result.result.decision === 'deny' ? 'error' : 'pending'}">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <strong>Scenario: ${result.scenario.name}</strong>
+                        <span>${matched ? '✅ Expected' : '⚠️ Unexpected'}</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <strong>Decision:</strong> ${result.result.decision}
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <strong>Reason:</strong> ${result.result.reason}
+                    </div>
+                    ${result.result.blocked_by ? `<div style="margin-bottom: 8px;"><strong>Blocked By:</strong> ${result.result.blocked_by}</div>` : ''}
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(148, 163, 184, 0.2);">
+                        <span class="risk-badge risk-${getRiskClass(result.result.risk_score)}">
+                            Risk Score: ${result.result.risk_score}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Send AI agent prompt
+        async function sendAgentPrompt() {
+            const prompt = document.getElementById('userPrompt').value;
+            if (!prompt.trim()) {
+                alert('Please enter a prompt');
+                return;
+            }
+            
+            const agentId = document.getElementById('agentSelect').value;
+            const provider = document.querySelector('input[name="provider"]:checked').value;
+            
+            const btn = document.getElementById('agentBtn');
+            btn.disabled = true;
+            document.getElementById('agentBtnText').textContent = '🤖 AI Agent Processing...';
+            
+            try {
+                const res = await fetch(`${AGENT_API_URL}/agent/prompt`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        agent_id: agentId,
+                        provider: provider
+                    })
+                });
+                
+                const data = await res.json();
+                displayAgentResponse(data);
+                await loadStats();
+            } catch (e) {
+                alert('Failed to process prompt: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                document.getElementById('agentBtnText').textContent = '🚀 Send to AI Agent';
+            }
+        }
+
+        function displayAgentResponse(data) {
+            const container = document.getElementById('agentResponse');
+            
+            if (!data.success) {
+                container.innerHTML = `
+                    <div class="response-container error">
+                        <strong>Error:</strong> ${data.error}
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `<div class="response-container success" style="margin-top: 16px;">`;
+            
+            if (data.agent_response) {
+                html += `<div style="margin-bottom: 12px;"><strong>Agent Response:</strong> ${data.agent_response}</div>`;
+            }
+            
+            if (data.tool_calls && data.tool_calls.length > 0) {
+                html += `<div style="margin-top: 12px;"><strong>Tool Calls:</strong></div>`;
+                
+                data.tool_calls.forEach(call => {
+                    const gw = call.gateway_result;
+                    const allowed = gw.decision === 'allow';
+                    const pending = gw.requires_approval;
+                    
+                    html += `
+                        <div style="margin-top: 8px; padding: 12px; background: rgba(15, 23, 42, 0.5); border-radius: 6px; border-left: 3px solid ${allowed ? '#10b981' : pending ? '#f59e0b' : '#ef4444'};">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                <strong>${call.function}</strong>
+                                <span>${allowed ? '✅ Allowed' : pending ? '⏸️ Pending' : '❌ Blocked'}</span>
+                            </div>
+                            <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">
+                                ${JSON.stringify(call.arguments)}
+                            </div>
+                            <div style="font-size: 12px; color: #cbd5e1;">${gw.reason}</div>
+                            ${gw.blocked_by ? `<div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Blocked by: ${gw.blocked_by}</div>` : ''}
+                        </div>
+                    `;
+                });
+            }
+            
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        // Load pending approvals
+        async function loadPendingApprovals() {
+            try {
+                const res = await fetch(`${GATEWAY_URL}/gateway/pending-approvals`);
+                const data = await res.json();
+                
+                const container = document.getElementById('approvalsList');
+                
+                if (!data.pending_approvals || data.pending_approvals.length === 0) {
+                    container.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 20px;">No pending approvals</p>';
+                    return;
+                }
+                
+                container.innerHTML = data.pending_approvals.map(approval => `
+                    <div class="approval-item">
+                        <div class="approval-header">
+                            <div>
+                                <strong>${approval.agent_id}</strong> wants to call <strong>${approval.tool_name}</strong>
+                            </div>
+                            <span class="risk-badge risk-medium">Pending</span>
+                        </div>
+                        <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 8px;">
+                            ${JSON.stringify(approval.parameters)}
+                        </div>
+                        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px;">
+                            ${approval.reason}
+                        </div>
+                        <div class="approval-actions">
+                            <button class="button-success" onclick="approveAction('${approval.approval_id}', true)">
+                                ✅ Approve
+                            </button>
+                            <button class="button-danger" onclick="approveAction('${approval.approval_id}', false)">
+                                ❌ Deny
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('Failed to load approvals:', e);
+            }
+        }
+
+        async function approveAction(approvalId, approved) {
+            try {
+                const res = await fetch(`${GATEWAY_URL}/gateway/approve`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        approval_id: approvalId,
+                        approved: approved,
+                        approver: 'dashboard_user',
+                        reason: approved ? 'Approved via dashboard' : 'Denied via dashboard'
+                    })
+                });
+                
+                await res.json();
+                await loadPendingApprovals();
+                await loadStats();
+            } catch (e) {
+                alert('Failed to process approval: ' + e.message);
+            }
+        }
+
+        // Display events
+        function displayEvents(events) {
+            const container = document.getElementById('eventList');
+            if (!events || events.length === 0) {
+                container.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 20px;">No events yet</p>';
+                return;
+            }
+            
+            container.innerHTML = events.slice(-20).reverse().map(event => createEventHTML(event)).join('');
+        }
+
+        function addEventToStream(event) {
+            const container = document.getElementById('eventList');
+            const eventHTML = createEventHTML(event);
+            container.insertAdjacentHTML('afterbegin', eventHTML);
+            
+            // Keep only last 20 events
+            const items = container.querySelectorAll('.event-item');
+            if (items.length > 20) {
+                items[items.length - 1].remove();
+            }
+        }
+
+        function createEventHTML(event) {
+            const decision = event.decision || 'unknown';
+            const className = decision === 'allow' ? 'allowed' : decision === 'deny' ? 'denied' : 'approval';
+            const icon = decision === 'allow' ? '✅' : decision === 'deny' ? '❌' : '⏸️';
+            
+            return `
+                <div class="event-item ${className}">
+                    <div class="event-header">
+                        <span class="event-agent">${icon} ${event.agent_id}</span>
+                        <span class="event-time">${new Date(event.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="event-action">${event.tool_name || event.type}</div>
+                    <div class="event-reason">${event.reason}</div>
+                </div>
+            `;
+        }
+
+        function getRiskClass(score) {
+            if (score >= 90) return 'critical';
+            if (score >= 70) return 'high';
+            if (score >= 40) return 'medium';
+            return 'low';
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

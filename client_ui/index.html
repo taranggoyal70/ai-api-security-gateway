@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWASP API #10 Security Lab</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🔒 OWASP API Security Lab</h1>
+                <p class="subtitle">Educational Platform for API Security Testing</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="intro-section">
+                <h2>OWASP API Security Top 10 (2023)</h2>
+                <p>
+                    This interactive lab demonstrates critical API security vulnerabilities
+                    and their mitigations. Each demo shows both vulnerable and secure implementations
+                    side-by-side for educational purposes.
+                </p>
+            </div>
+
+            <!-- Demo Cards -->
+            <div class="demo-grid">
+                <!-- XSS Demo Card -->
+                <div class="demo-card">
+                    <div class="demo-card-header">
+                        <span class="demo-icon">⚠️</span>
+                        <h3>API10: Unsafe Consumption of APIs</h3>
+                    </div>
+                    <div class="demo-card-body">
+                        <h4>XSS via Third-Party API</h4>
+                        <p>
+                            Demonstrates how consuming untrusted third-party APIs without
+                            proper validation can lead to Cross-Site Scripting (XSS) attacks.
+                        </p>
+                        <ul class="feature-list">
+                            <li>✅ Safe vs Unsafe API consumption</li>
+                            <li>✅ Output encoding demonstration</li>
+                            <li>✅ Security event logging</li>
+                            <li>✅ Real-time attack visualization</li>
+                        </ul>
+                    </div>
+                    <div class="demo-card-footer">
+                        <a href="/demos/xss.html" class="btn btn-primary">
+                            Launch XSS Demo →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Placeholder for future demos -->
+                <div class="demo-card demo-card-disabled">
+                    <div class="demo-card-header">
+                        <span class="demo-icon">🔜</span>
+                        <h3>Coming Soon</h3>
+                    </div>
+                    <div class="demo-card-body">
+                        <h4>More API Security Demos</h4>
+                        <p>
+                            Additional OWASP API Security Top 10 demonstrations
+                            will be added to this platform.
+                        </p>
+                        <ul class="feature-list">
+                            <li>SQL Injection via APIs</li>
+                            <li>Broken Authentication</li>
+                            <li>Rate Limiting Bypass</li>
+                            <li>And more...</li>
+                        </ul>
+                    </div>
+                    <div class="demo-card-footer">
+                        <button class="btn btn-secondary" disabled>
+                            Coming Soon
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Information Section -->
+            <div class="info-section">
+                <h3>🎓 Learning Objectives</h3>
+                <div class="info-grid">
+                    <div class="info-box">
+                        <h4>Understand Risks</h4>
+                        <p>Learn how unsafe API consumption can compromise your application</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>See Mitigations</h4>
+                        <p>Observe security controls in action and their effectiveness</p>
+                    </div>
+                    <div class="info-box">
+                        <h4>Practice Safely</h4>
+                        <p>Test attack scenarios in a controlled, educational environment</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning Banner -->
+            <div class="warning-banner">
+                <strong>⚠️ Educational Use Only</strong>
+                <p>
+                    This lab contains intentionally vulnerable code for educational purposes.
+                    Never deploy this code to production environments. Always follow secure
+                    coding practices in real applications.
+                </p>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>
+                Built for security education | 
+                <a href="https://owasp.org/API-Security/editions/2023/en/0x11-t10/" target="_blank">
+                    OWASP API Security Top 10
+                </a>
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

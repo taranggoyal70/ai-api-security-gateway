@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Demo - OWASP API #10</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <a href="/" class="back-link">← Back to Hub</a>
+                <h1>⚠️ Unsafe Third-Party API Consumption (XSS)</h1>
+                <p class="subtitle">OWASP API Security Top 10 (2023) - API10</p>
+            </div>
+        </header>
+
+        <!-- Main Layout: 2 Columns -->
+        <main class="demo-layout">
+            <!-- Left Panel: Controls & Outputs -->
+            <div class="left-panel">
+                <!-- Control Panel -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🎛️ Test Controls</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Mode Display -->
+                        <div class="form-group">
+                            <label>Attack Mode:</label>
+                            <div class="mode-badge">XSS</div>
+                        </div>
+
+                        <!-- Variant Selector -->
+                        <div class="form-group">
+                            <label for="variant">XSS Variant:</label>
+                            <select id="variant" class="form-control">
+                                <option value="img_onerror">Image onerror (Auto-trigger)</option>
+                                <option value="svg_onload">SVG onload (Auto-trigger)</option>
+                                <option value="script_tag">Script Tag (May be blocked)</option>
+                                <option value="onclick_requires_user">Button onclick (User click required)</option>
+                                <option value="link_js_scheme">JavaScript Link (User click required)</option>
+                                <option value="html_injection_no_js">HTML Injection (No JS)</option>
+                            </select>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="button-group">
+                            <button id="runUnsafe" class="btn btn-danger">
+                                ⚠️ Run UNSAFE Flow
+                            </button>
+                            <button id="runSafe" class="btn btn-success">
+                                ✅ Run SAFE Flow
+                            </button>
+                        </div>
+
+                        <!-- Status Indicator -->
+                        <div id="status" class="status-pill status-ready">
+                            <span class="status-dot"></span>
+                            <span id="statusText">Ready</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expected Behavior -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📋 Expected Behavior</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="expectedBehavior" class="expected-text">
+                            Select a variant and run a flow to see expected behavior
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Request Details -->
+                <div id="requestDetails" class="card" style="display: none;">
+                    <div class="card-header">
+                        <h3>📡 Request Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="detail-row">
+                            <span class="detail-label">Flow:</span>
+                            <span id="flowType" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Vendor URL:</span>
+                            <span id="vendorUrl" class="detail-value code"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Timestamp:</span>
+                            <span id="timestamp" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Status:</span>
+                            <span id="responseStatus" class="detail-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vendor Raw Payload -->
+                <div id="vendorPayload" class="card" style="display: none;">
+                    <div class="card-header">
+                        <h3>🔴 Vendor Raw Payload</h3>
+                    </div>
+                    <div class="card-body">
+                        <pre id="vendorJson" class="json-display"></pre>
+                    </div>
+                </div>
+
+                <!-- Security Controls -->
+                <div id="controlsPanel" class="card" style="display: none;">
+                    <div class="card-header">
+                        <h3>🛡️ Security Controls Applied</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="control-item">
+                            <span class="control-label">Output Encoding:</span>
+                            <span id="controlEncoding" class="control-badge"></span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-label">Security Logging:</span>
+                            <span id="controlLogging" class="control-badge"></span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-label">Vendor Error Handling:</span>
+                            <span id="controlErrorHandling" class="control-badge"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Evidence Logs -->
+                <div id="evidencePanel" class="card" style="display: none;">
+                    <div class="card-header">
+                        <h3>📝 Security Event Logs</h3>
+                    </div>
+                    <div class="card-body">
+                        <pre id="logTail" class="log-display"></pre>
+                    </div>
+                </div>
+
+                <!-- Rendered Output -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🖥️ Rendered Output</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- UNSAFE Render -->
+                        <div class="render-box render-unsafe">
+                            <div class="render-label">⚠️ UNSAFE Render (innerHTML)</div>
+                            <div id="unsafeRender" class="render-content"></div>
+                        </div>
+
+                        <!-- SAFE Render -->
+                        <div class="render-box render-safe">
+                            <div class="render-label">✅ SAFE Render (textContent)</div>
+                            <div id="safeRender" class="render-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Execution Flow Diagram -->
+            <div class="right-panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🔄 Execution Flow</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="flow-diagram">
+                            <!-- Step 1: Client UI -->
+                            <div class="flow-step" id="flowStep1">
+                                <div class="flow-step-number">1</div>
+                                <div class="flow-step-content">
+                                    <div class="flow-step-title">Client UI</div>
+                                    <div class="flow-step-desc">User triggers request</div>
+                                </div>
+                            </div>
+                            <div class="flow-arrow">↓</div>
+
+                            <!-- Step 2: Consumer API -->
+                            <div class="flow-step" id="flowStep2">
+                                <div class="flow-step-number">2</div>
+                                <div class="flow-step-content">
+                                    <div class="flow-step-title">Consumer API</div>
+                                    <div class="flow-step-desc" id="flowStep2Desc">Receives request</div>
+                                </div>
+                            </div>
+                            <div class="flow-arrow">↓</div>
+
+                            <!-- Step 3: Vendor API -->
+                            <div class="flow-step" id="flowStep3">
+                                <div class="flow-step-number">3</div>
+                                <div class="flow-step-content">
+                                    <div class="flow-step-title">Vendor API (Untrusted)</div>
+                                    <div class="flow-step-desc">Returns malicious payload</div>
+                                </div>
+                            </div>
+                            <div class="flow-arrow">↓</div>
+
+                            <!-- Step 4: Security Controls -->
+                            <div class="flow-step" id="flowStep4">
+                                <div class="flow-step-number">4</div>
+                                <div class="flow-step-content">
+                                    <div class="flow-step-title">Security Controls</div>
+                                    <div class="flow-step-desc" id="flowStep4Desc">Defense status</div>
+                                </div>
+                            </div>
+                            <div class="flow-arrow">↓</div>
+
+                            <!-- Step 5: Render -->
+                            <div class="flow-step" id="flowStep5">
+                                <div class="flow-step-number">5</div>
+                                <div class="flow-step-content">
+                                    <div class="flow-step-title">Browser Render</div>
+                                    <div class="flow-step-desc" id="flowStep5Desc">Render output</div>
+                                </div>
+                            </div>
+
+                            <!-- Risk Indicator -->
+                            <div class="risk-indicator" id="riskIndicator" style="display: none;">
+                                <div class="risk-icon">⚠️</div>
+                                <div class="risk-text">XSS Risk Executed!</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/assets/app.js"></script>
+    <script>
+        // Expected behaviors for each variant
+        const expectedBehaviors = {
+            'img_onerror': '🔴 UNSAFE: Alert popup will trigger automatically\n✅ SAFE: No popup, encoded HTML displayed as text',
+            'svg_onload': '🔴 UNSAFE: Alert popup may trigger (browser-dependent)\n✅ SAFE: No popup, encoded HTML displayed as text',
+            'script_tag': '🔴 UNSAFE: May not execute (modern browsers block innerHTML script tags)\n✅ SAFE: No execution, encoded HTML displayed as text',
+            'onclick_requires_user': '🔴 UNSAFE: Renders button, clicking it triggers alert\n✅ SAFE: No button rendered, encoded HTML displayed as text',
+            'link_js_scheme': '🔴 UNSAFE: Renders link, clicking it triggers alert\n✅ SAFE: No link rendered, encoded HTML displayed as text',
+            'html_injection_no_js': '🔴 UNSAFE: Bold red text "FREE MOVIE DOWNLOAD" displayed\n✅ SAFE: Plain text with HTML tags visible'
+        };
+
+        // Update expected behavior when variant changes
+        document.getElementById('variant').addEventListener('change', function() {
+            const variant = this.value;
+            document.getElementById('expectedBehavior').textContent = expectedBehaviors[variant];
+        });
+
+        // Set initial expected behavior
+        document.getElementById('expectedBehavior').textContent = expectedBehaviors['img_onerror'];
+
+        // Run UNSAFE Flow
+        document.getElementById('runUnsafe').addEventListener('click', async function() {
+            const variant = document.getElementById('variant').value;
+            await runFlow('unsafe', variant);
+        });
+
+        // Run SAFE Flow
+        document.getElementById('runSafe').addEventListener('click', async function() {
+            const variant = document.getElementById('variant').value;
+            await runFlow('safe', variant);
+        });
+
+        async function runFlow(flowType, variant) {
+            // Clear previous renders
+            document.getElementById('unsafeRender').innerHTML = '';
+            document.getElementById('safeRender').textContent = '';
+            
+            // Update status
+            setStatus('loading', 'Fetching data...');
+            
+            // Reset flow diagram
+            resetFlowDiagram();
+            
+            try {
+                // Call consumer API
+                const url = `http://localhost:8001/sync/${flowType}/101?mode=xss&variant=${variant}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Update UI with response
+                displayResponse(data, flowType);
+                
+                // Render output
+                renderOutput(data, flowType);
+                
+                // Update flow diagram
+                updateFlowDiagram(data, flowType);
+                
+                setStatus('ready', 'Complete');
+                
+            } catch (error) {
+                setStatus('error', 'Error: ' + error.message);
+                console.error('Flow error:', error);
+            }
+        }
+
+        function displayResponse(data, flowType) {
+            // Show panels
+            document.getElementById('requestDetails').style.display = 'block';
+            document.getElementById('vendorPayload').style.display = 'block';
+            document.getElementById('controlsPanel').style.display = 'block';
+            document.getElementById('evidencePanel').style.display = 'block';
+            
+            // Request details
+            document.getElementById('flowType').textContent = flowType.toUpperCase();
+            document.getElementById('flowType').className = `detail-value badge badge-${flowType === 'safe' ? 'success' : 'danger'}`;
+            document.getElementById('vendorUrl').textContent = data.request.vendor_url;
+            document.getElementById('timestamp').textContent = new Date(data.request.timestamp).toLocaleString();
+            document.getElementById('responseStatus').textContent = data.request.status;
+            
+            // Vendor payload
+            document.getElementById('vendorJson').textContent = JSON.stringify(data.vendor_raw, null, 2);
+            
+            // Controls
+            setControlBadge('controlEncoding', data.controls.output_encoding);
+            setControlBadge('controlLogging', data.controls.logging);
+            setControlBadge('controlErrorHandling', data.controls.vendor_error_handling);
+            
+            // Logs
+            const logs = data.evidence.log_tail || [];
+            document.getElementById('logTail').textContent = logs.length > 0 
+                ? logs.join('\n') 
+                : 'No security events logged';
+        }
+
+        function renderOutput(data, flowType) {
+            const title = data.result.title;
+            
+            if (flowType === 'unsafe') {
+                // ⚠️ UNSAFE: Use innerHTML (allows XSS)
+                document.getElementById('unsafeRender').innerHTML = title;
+                document.getElementById('safeRender').textContent = '';
+            } else {
+                // ✅ SAFE: Use textContent (prevents XSS)
+                document.getElementById('safeRender').textContent = title;
+                document.getElementById('unsafeRender').innerHTML = '';
+            }
+        }
+
+        function updateFlowDiagram(data, flowType) {
+            // Update step 2
+            document.getElementById('flowStep2Desc').textContent = 
+                flowType === 'safe' ? 'Applies security controls' : 'Forwards data directly';
+            document.getElementById('flowStep2').className = 
+                flowType === 'safe' ? 'flow-step flow-step-safe' : 'flow-step flow-step-unsafe';
+            
+            // Update step 4
+            const encoding = data.controls.output_encoding;
+            document.getElementById('flowStep4Desc').textContent = 
+                encoding === 'Applied' ? '✅ Encoding applied' : 
+                encoding === 'Not Available' ? '⚠️ Defense disabled' : 
+                'Not triggered';
+            document.getElementById('flowStep4').className = 
+                encoding === 'Applied' ? 'flow-step flow-step-safe' : 
+                encoding === 'Not Available' ? 'flow-step flow-step-unsafe' : 
+                'flow-step';
+            
+            // Update step 5
+            document.getElementById('flowStep5Desc').textContent = 
+                flowType === 'safe' ? 'Safe render (textContent)' : 'Unsafe render (innerHTML)';
+            document.getElementById('flowStep5').className = 
+                flowType === 'safe' ? 'flow-step flow-step-safe' : 'flow-step flow-step-unsafe';
+            
+            // Show risk indicator for unsafe flow
+            if (flowType === 'unsafe') {
+                document.getElementById('riskIndicator').style.display = 'block';
+            }
+        }
+
+        function resetFlowDiagram() {
+            document.getElementById('flowStep2').className = 'flow-step';
+            document.getElementById('flowStep4').className = 'flow-step';
+            document.getElementById('flowStep5').className = 'flow-step';
+            document.getElementById('riskIndicator').style.display = 'none';
+        }
+
+        function setControlBadge(elementId, state) {
+            const element = document.getElementById(elementId);
+            element.textContent = state;
+            element.className = 'control-badge';
+            
+            if (state === 'Applied') {
+                element.classList.add('badge-success');
+            } else if (state === 'Not Available') {
+                element.classList.add('badge-danger');
+            } else if (state === 'Triggered') {
+                element.classList.add('badge-warning');
+            } else {
+                element.classList.add('badge-secondary');
+            }
+        }
+
+        function setStatus(type, text) {
+            const statusEl = document.getElementById('status');
+            const statusText = document.getElementById('statusText');
+            
+            statusEl.className = `status-pill status-${type}`;
+            statusText.textContent = text;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+*.pyc
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+test_users.db
+
+# Logs
+*.log
+logs/
+logs/*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node modules (if any)
+node_modules/
+
+# Environment variables
+.env
+.env.local
+
+# Test files (temporary)
+test_dashboard.html
+live_testing_dashboard.html
+
+# Project specific
+consumer_api/logs/security-events.log
+agent_api_gateway/test_users.db
